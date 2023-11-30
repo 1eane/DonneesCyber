@@ -1,7 +1,6 @@
-from datetime import date, datetime
-from time import strftime
+from datetime import datetime
 import random
-import sched, time
+import time
 
 
 class Canal:
@@ -18,7 +17,6 @@ class Person:
         self.myMsg = []
 
     def sendMsg(self):
-        time = datetime.now()
         b = random.randint(0, 1)
         if(self.name == "Alice"):
             # case if Alice want send message
@@ -34,41 +32,41 @@ class Person:
                 body = "Alice"
 
         msg = body + " " + str(datetime.now())
+        
+        # add message to the canal
         self.canalCom.postMsg(msg)
+        # add message to my personal message list
         self.myMsg.append(msg)
+
+        # sleep between 0.5 and 1 secondes
+        timerSleep = random.uniform(0.5,1)
+        time.sleep(timerSleep)
+
 
     def extractSecret(self):
         secret = []
-        #pour chaque message
         for message in self.canalCom.allMessages:
-            #regarder si il s'agit d'un message envoyé par la personne
             if message in self.myMsg:
-                #regarder si il contient Alice ou Bob
-                if self.name in message: # cas où le message de la personne contient le nom de la même personne 
+                if self.name in message: 
                     bit = 0
-                else: # cas où le message de la personne contient le nom d'une autre personne
+                else: 
                     bit = 1
-            else :#si ce n'est pas un message envoyé par la personne
-                if self.name in message: # cas où le message envoyé par une autre personne contient le nom de la personne qui récupère le secret
+            else:
+                if self.name in message:
                     bit = 1
-                else: # cas où le message envoyé par une autre personne contient le nom de cette autre personne
+                else: 
                     bit = 0
-            #en déduire la valeur du bit et le stocker dans le secret 
+            # array with secret password
             secret.append(bit)
         return secret
 
     
-def genererSecret(personA, personB, duration, canal):
+def generateSecret(personA, personB, duration, canal):
     start_time = time.time()
 
-    while len(canal.allMessages) < 10:
-        current_time = time.time()
-        elapsed_time = current_time - start_time
+    while time.time() - start_time < duration:
         personA.sendMsg()
         personB.sendMsg()
-
-        time.sleep(0.3)
-
 
 
 canal = Canal()
@@ -76,16 +74,18 @@ canal = Canal()
 Alice = Person("Alice", canal)
 Bob = Person("Bob", canal)
 
-genererSecret(Alice,Bob, 1, canal)
+generateSecret(Alice, Bob, 5, canal)
 
 print(Bob.extractSecret())
 print(Alice.extractSecret())
 
-print("tous les messages du canal : \n")
+print("tous les messages du canal : ")
 print(canal.allMessages)
+print("\n")
 
-print("Bod messages : \n")
+print("Bod messages : ")
 print(Bob.myMsg)
+print("\n")
 
-print("Alice messages : \n")
+print("Alice messages : ")
 print(Alice.myMsg)
